@@ -1,1 +1,14 @@
 #pentru legarea containerelor
+
+services:
+  backend:
+    build: ./Back-End
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+
+  frontend:
+    build: ./Front-End
+    ports:
+      - "3000:80"
