@@ -1,28 +1,80 @@
 import React, { useState, useEffect } from "react";
+import { Howl } from 'howler';
 import RecipeSuggestions from "./RecipeSuggestions";
+import ExpirationNotification from "./ExpirationNotification";
+import NotificationModal from "./NotificationModal";
 import "./FridgePage.css";
+
+const notificationSound = new Howl({
+    src: ['https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3'],
+    volume: 0.3
+});
 
 function FridgePage() {
     const [filter, setFilter] = useState("all");
     const [sort, setSort] = useState("date");
-    const [items, setItems] = useState(() => {
-        const saved = localStorage.getItem("fridgeItems");
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [items, setItems] = useState([]);
     const [name, setName] = useState("");
     const [quantity, setQuantity] = useState("");
     const [expiryDate, setExpiryDate] = useState("");
     const [editIndex, setEditIndex] = useState(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [expiringSoonItems, setExpiringSoonItems] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
+    // Load items from localStorage
     useEffect(() => {
-        localStorage.setItem("fridgeItems", JSON.stringify(items));
-    }, [items]);
+        const saved = localStorage.getItem('fridgeItems');
+        if (saved) {
+            setItems(JSON.parse(saved));
+        }
+        setIsLoading(false);
+    }, []);
 
-    const resetForm = () => {
-        setName("");
-        setQuantity("");
-        setExpiryDate("");
-        setEditIndex(null);
+    // Save items to localStorage and check expirations
+    useEffect(() => {
+        if (!isLoading) {
+            localStorage.setItem('fridgeItems', JSON.stringify(items));
+            checkExpiringItems();
+        }
+    }, [items, isLoading]);
+
+    const checkExpiringItems = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const soonItems = items.filter(item => {
+            const expDate = new Date(item.expiryDate);
+            expDate.setHours(0, 0, 0, 0);
+            const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+            return diffDays <= 3 && diffDays >= 0;
+        });
+
+        if (soonItems.length > 0) {
+            setExpiringSoonItems(soonItems);
+            setShowNotifications(true);
+            notificationSound.play();
+        }
+    };
+
+    const normalizeDate = (date) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    };
+
+    const getDaysUntilExpiration = (expirationDate) => {
+        const today = normalizeDate(new Date());
+        const expDate = normalizeDate(new Date(expirationDate));
+        const timeDiff = expDate - today;
+        return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    };
+
+    const getColorForExpiration = (days) => {
+        if (days < 0) return "expired";
+        if (days <= 3) return "red";
+        if (days <= 6) return "orange";
+        return "green";
     };
 
     const handleSubmit = (e) => {
@@ -32,37 +84,41 @@ function FridgePage() {
             return;
         }
 
-        const newItem = { name, quantity, expiryDate };
+        const selectedDate = normalizeDate(new Date(expiryDate));
+        const today = normalizeDate(new Date());
 
-        if (editIndex !== null) {
-            const updatedItems = [...items];
-            updatedItems[editIndex] = newItem;
-            setItems(updatedItems);
-        } else {
-            setItems([...items, newItem]);
+        if (selectedDate < today && editIndex === null) {
+            if (!window.confirm("Data de expirare este în trecut. Sigur vrei să adaugi acest aliment?")) {
+                return;
+            }
         }
+
+        const newItem = {
+            name: name.trim(),
+            quantity: quantity.trim(),
+            expiryDate
+        };
+
+        setItems(prevItems =>
+            editIndex !== null
+                ? prevItems.map((item, idx) => idx === editIndex ? newItem : item)
+                : [...prevItems, newItem]
+        );
 
         resetForm();
     };
 
-    const isExpired = (expiryDate) => {
-        const today = new Date();
-        const expDate = new Date(expiryDate);
-        return expDate < today;
-    };
-
-    const isExpiringSoon = (expiryDate) => {
-        const today = new Date();
-        const expDate = new Date(expiryDate);
-        const diffTime = expDate - today;
-        const diffDays = diffTime / (1000 * 60 * 60 * 24);
-        return diffDays >= 0 && diffDays <= 3;
+    const resetForm = () => {
+        setName("");
+        setQuantity("");
+        setExpiryDate("");
+        setEditIndex(null);
     };
 
     const handleDelete = (index) => {
         if (window.confirm("Ești sigur(ă) că vrei să ștergi acest aliment?")) {
-            const updatedItems = items.filter((_, i) => i !== index);
-            setItems(updatedItems);
+            setItems(prev => prev.filter((_, i) => i !== index));
+            if (editIndex === index) resetForm();
         }
     };
 
@@ -74,143 +130,145 @@ function FridgePage() {
         setEditIndex(index);
     };
 
-    const handleFilterChange = (e) => {
-        setFilter(e.target.value);
-    };
+    const handleFilterChange = (e) => setFilter(e.target.value);
+    const handleSortChange = (e) => setSort(e.target.value);
 
-    const handleSortChange = (e) => {
-        setSort(e.target.value);
-    };
-
-    // Filtrare și sortare
-    let filteredItems = items.filter((item) => {
-        if (filter === "expired") return isExpired(item.expiryDate);
-        if (filter === "notExpired") return !isExpired(item.expiryDate);
+    const filteredItems = items.filter(item => {
+        const daysLeft = getDaysUntilExpiration(item.expiryDate);
+        if (filter === "expired") return daysLeft < 0;
+        if (filter === "notExpired") return daysLeft >= 0;
         return true;
+    }).sort((a, b) => {
+        if (sort === "name") return a.name.localeCompare(b.name);
+        return new Date(a.expiryDate) - new Date(b.expiryDate);
     });
 
-    filteredItems.sort((a, b) => {
-        if (sort === "name") return a.name.localeCompare(b.name);
-        if (sort === "date") return new Date(a.expiryDate) - new Date(b.expiryDate);
-        return 0;
-    });
+    if (isLoading) return <div className="loading">Se încarcă...</div>;
 
     return (
-        <div style={{ maxWidth: "700px", margin: "auto", padding: "1rem" }}>
+        <div className="fridge-container">
+            {showNotifications && (
+                <NotificationModal
+                    items={expiringSoonItems}
+                    onClose={() => setShowNotifications(false)}
+                />
+            )}
+
+            <ExpirationNotification alimente={items} />
+
             <h2>Frigiderul tău</h2>
 
-            <form onSubmit={handleSubmit} style={{ marginBottom: "1rem" }}>
-                <input
-                    type="text"
-                    placeholder="Nume aliment"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    style={{ marginRight: "0.5rem" }}
-                />
-                <input
-                    type="number"
-                    placeholder="Cantitate"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    style={{ marginRight: "0.5rem", width: "80px" }}
-                />
-                <input
-                    type="date"
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                    style={{ marginRight: "0.5rem" }}
-                />
-                <button type="submit">{editIndex !== null ? "Salvează" : "Adaugă"}</button>
-                {editIndex !== null && (
-                    <button type="button" onClick={resetForm} style={{ marginLeft: "0.5rem" }}>
-                        Anulează
+            <form onSubmit={handleSubmit} className="item-form">
+                <div className="form-group">
+                    <input
+                        type="text"
+                        placeholder="Nume aliment"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <input
+                        type="number"
+                        placeholder="Cantitate"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                        min="1"
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <input
+                        type="date"
+                        value={expiryDate}
+                        onChange={(e) => setExpiryDate(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-actions">
+                    <button type="submit" className="primary-btn">
+                        {editIndex !== null ? "Salvează" : "Adaugă"}
                     </button>
-                )}
+                    {editIndex !== null && (
+                        <button type="button" onClick={resetForm} className="secondary-btn">
+                            Anulează
+                        </button>
+                    )}
+                </div>
             </form>
 
-            <div style={{ marginBottom: "15px" }}>
-                <label>
-                    Filtrează:{" "}
+            <div className="filter-sort-container">
+                <div className="filter-group">
+                    <label>Filtrează:</label>
                     <select value={filter} onChange={handleFilterChange}>
                         <option value="all">Toate</option>
                         <option value="expired">Expirate</option>
                         <option value="notExpired">Neexpirate</option>
                     </select>
-                </label>
-
-                <label style={{ marginLeft: "20px" }}>
-                    Sortează după:{" "}
+                </div>
+                <div className="sort-group">
+                    <label>Sortează după:</label>
                     <select value={sort} onChange={handleSortChange}>
                         <option value="date">Dată expirare</option>
                         <option value="name">Nume</option>
                     </select>
-                </label>
+                </div>
             </div>
 
             {items.length === 0 ? (
-                <p>Nu ai alimente în frigider.</p>
+                <p className="empty-message">Frigiderul este gol. Adaugă alimente!</p>
             ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                    <tr>
-                        <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>Nume</th>
-                        <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>Cantitate</th>
-                        <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>Expiră</th>
-                        <th style={{ borderBottom: "1px solid #ccc", padding: "0.5rem" }}>Acțiuni</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {filteredItems.map((item, index) => {
-                        const expiringSoon = isExpiringSoon(item.expiryDate);
-                        return (
-                            <tr
-                                key={index}
-                                style={{
-                                    backgroundColor: expiringSoon ? "#ffe5e5" : "transparent",
-                                }}
-                                title={expiringSoon ? "Expiră în curând!" : ""}
-                            >
-                                <td style={{ padding: "0.5rem" }}>{item.name}</td>
-                                <td style={{ padding: "0.5rem", textAlign: "center" }}>{item.quantity}</td>
-                                <td style={{ padding: "0.5rem", textAlign: "center" }}>{item.expiryDate}</td>
-                                <td style={{ padding: "0.5rem", textAlign: "center" }}>
-                                    <button
-                                        onClick={() => handleEdit(index)}
-                                        style={{
-                                            marginRight: "0.5rem",
-                                            backgroundColor: "#add8e6", // bleo (light blue)
-                                            border: "none",
-                                            padding: "5px 10px",
-                                            borderRadius: "4px",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(index)}
-                                        style={{
-                                            backgroundColor: "#ff4d4d", // roșu
-                                            border: "none",
-                                            padding: "5px 10px",
-                                            borderRadius: "4px",
-                                            cursor: "pointer",
-                                            color: "white",
-                                        }}
-                                    >
-                                        Șterge
-                                    </button>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                    </tbody>
-                </table>
+                <div className="table-container">
+                    <table className="fridge-table">
+                        <thead>
+                        <tr>
+                            <th>Nume</th>
+                            <th>Cantitate</th>
+                            <th>Expiră</th>
+                            <th>Acțiuni</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {filteredItems.map((item, index) => {
+                            const daysLeft = getDaysUntilExpiration(item.expiryDate);
+                            const color = getColorForExpiration(daysLeft);
+
+                            return (
+                                <tr key={`${item.name}-${index}`} className={`item-row ${color}`}>
+                                    <td>{item.name}</td>
+                                    <td className="quantity">{item.quantity}</td>
+                                    <td className="expiry">
+                                        {new Date(item.expiryDate).toLocaleDateString()}
+                                        <span className="days-left">
+                        ({daysLeft >= 0 ? `${daysLeft} zile` : "expirat"})
+                      </span>
+                                    </td>
+                                    <td className="actions">
+                                        <button
+                                            onClick={() => handleEdit(index)}
+                                            className="edit-btn"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(index)}
+                                            className="delete-btn"
+                                        >
+                                            Șterge
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                        </tbody>
+                    </table>
+                </div>
             )}
 
-            <div style={{ marginTop: "2rem" }}>
+            <div className="recipe-suggestions">
                 <h3>Rețete sugerate</h3>
-                <RecipeSuggestions alimente={items.map((item) => item.name)} />
+                <RecipeSuggestions alimente={items.map(item => item.name)} />
             </div>
         </div>
     );
