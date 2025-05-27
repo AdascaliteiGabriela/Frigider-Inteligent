@@ -1,0 +1,20 @@
+version '3.8'
+
+services: 
+  backend:
+    build:
+      context: ../Back-End
+      dockerfile: Dockerfile
+    container_name: ${CONTAINER_BACKEND}
+    ports:
+      - "${PORT_BACKEND}:8080"
+    
+  frontend:
+    build:
+      context: ../Front-End
+      dockerfile: Dockerfile
+    container_name: ${CONTAINER_FRONTEND}
+    ports:
+      - "${PORT_FRONTEND}:80"
+    environment:
+      - REACT_APP_BACKEND_URL=${BACKEND_HOST}
