@@ -8,13 +8,10 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Etapa 2: servește aplicația cu Nginx
+
 FROM nginx:alpine
 
 COPY --from=build /app/build /usr/share/nginx/html
-
-# Copiem și configurația Nginx (opțional)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
