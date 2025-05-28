@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RepositoryRetete extends JpaRepository<Reteta, Long> {
-    // Poți adăuga metode custom dacă ai nevoie mai târziu
+
 }

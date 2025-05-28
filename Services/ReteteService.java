@@ -33,8 +33,19 @@ public class ReteteService {
         return repoRetete.findById(idRetete).orElse(null);
     }
 
-    public void adaugaRetete(Reteta reteta) {
-        repoRetete.save(reteta);
+    public int adaugaRetete(Reteta reteta) {
+        int ok=0;
+        for(Reteta r : repoRetete.findAll()) {
+            if (r.getDenumire().equals(reteta.getDenumire())) {
+                ok=1;
+                break;
+            }
+        }
+        if(ok==0) {
+            repoRetete.save(reteta);
+        }
+        return ok;
+
     }
 
     public Reteta updateReteta(Reteta retetaNoua) {
@@ -61,9 +72,13 @@ public class ReteteService {
         return null;
     }
 
+    public List<Reteta> findAll(){
+        return repoRetete.findAll();
+    }
 
 
-    public TreeMap<Integer,List<Reteta>> sugestiiReteta(){
+
+    public List<Reteta> sugestiiReteta(){
         List<Reteta>  retete = repoRetete.findAll();
         TreeMap<Integer,List<Reteta>> sugestii = new TreeMap<>();
         List<AlimentDTO> alimenteDisponibile = listaService.findAll();
@@ -92,8 +107,15 @@ public class ReteteService {
 
 
 
+        //return sugestii;
+        List<List<Reteta>> liste=sugestii.entrySet().stream().filter(entry->entry.getKey()>=2).map(Map.Entry::getValue)
+                .collect(Collectors.toList());
 
-        return sugestii;
+        List<Reteta> reteteLista=new ArrayList<>();
+        for (List<Reteta> l : liste) {
+            reteteLista.addAll(l);
+        }
+        return reteteLista;
     }
 
 
