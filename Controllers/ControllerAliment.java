@@ -1,9 +1,8 @@
 package com.example.blue_app.Controllers;
 import com.example.blue_app.Classes.Aliment;
 import com.example.blue_app.Classes.AlimentDTO;
-import com.example.blue_app.Services.ListaService;
+import com.example.blue_app.Services.ServiceAlimente;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,11 +10,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/alimente")
-public class ControllerLista {
+public class ControllerAliment {
 
-    private final ListaService listaProduse;
+    private final ServiceAlimente listaProduse;
 
-    public ControllerLista(ListaService listaProduse) {
+    public ControllerAliment(ServiceAlimente listaProduse) {
         this.listaProduse = listaProduse;
     }
 
@@ -33,16 +32,16 @@ public class ControllerLista {
             int ok = listaProduse.AlimentExistent(a);
             if (ok == 0) {
                 listaProduse.adaugaAliment(a);
-                //return ResponseEntity.ok("alimment adaugat");
+
             } else {
                 listaProduse.updateAliment(a);
-                //return ResponseEntity.ok("alimentul adaugat era deja prezent in frigider, am crescut cantitatea");
+
             }
         }
 
         return ResponseEntity.ok("alimment adaugat");
 
-       // return ResponseEntity.ok("alimentul adaugat era deja prezent in frigider, am crescut cantitatea");
+
 
     }
 
@@ -64,6 +63,17 @@ public class ControllerLista {
             return ResponseEntity.ok(nouDTO);
         }
 
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAliment(@PathVariable Long id){
+        if(listaProduse.findById(id)!=null){
+            listaProduse.deleteAliment(id);
+            return ResponseEntity.ok("aliment eliminat");
+        }
+        else{
+            return ResponseEntity.badRequest().body("alimentul nu a fost gasit");
+        }
     }
 
 

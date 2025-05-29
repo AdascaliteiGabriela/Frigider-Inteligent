@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ListaService {
+public class ServiceAlimente {
 
     private final RepositoryAlimente repoA;
-    public ListaService(RepositoryAlimente repoA) {
+    public ServiceAlimente(RepositoryAlimente repoA) {
        this.repoA = repoA;
     }
 
@@ -58,6 +58,8 @@ public class ListaService {
         }
         return ok;
     }
+
+
 
 
 

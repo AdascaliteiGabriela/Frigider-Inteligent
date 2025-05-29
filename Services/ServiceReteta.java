@@ -2,8 +2,10 @@ package com.example.blue_app.Services;
 
 import com.example.blue_app.Classes.AlimentDTO;
 import com.example.blue_app.Classes.Reteta;
+import com.example.blue_app.Exceptions.RetetaNotFoundException;
+import com.example.blue_app.Exceptions.ReteteAlreadyExistsException;
 import org.springframework.stereotype.Service;
-import com.example.blue_app.Repositories.RepositoryRetete;
+import com.example.blue_app.Services.RepositoryRetete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,15 +15,15 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class ReteteService {
+public class ServiceReteta {
 
    // public Map<Integer, List<AlimentDTO>> sugestii;
-    private final ListaService listaService;
+    private final ServiceAlimente serviceAlimente;
     private final RepositoryRetete repoRetete;
 
 
-    public ReteteService(ListaService listaService, RepositoryRetete repoRetete) {
-        this.listaService = listaService;
+    public ServiceReteta(ServiceAlimente serviceAlimente, RepositoryRetete repoRetete) {
+        this.serviceAlimente = serviceAlimente;
         this.repoRetete = repoRetete;
     }
 
@@ -34,17 +36,11 @@ public class ReteteService {
     }
 
     public int adaugaRetete(Reteta reteta) {
-        int ok=0;
-        for(Reteta r : repoRetete.findAll()) {
-            if (r.getDenumire().equals(reteta.getDenumire())) {
-                ok=1;
-                break;
-            }
+        if(getReteteByDenumire(reteta.getDenumire()) != null) {
+            throw new ReteteAlreadyExistsException("Reteta deja existenta");
         }
-        if(ok==0) {
-            repoRetete.save(reteta);
-        }
-        return ok;
+        repoRetete.save(reteta);
+        return 0;
 
     }
 
@@ -53,10 +49,10 @@ public class ReteteService {
         Reteta retetaExistenta = getReteteByDenumire(retetaNoua.getDenumire());
 
         if (retetaExistenta == null) {
-            throw new RuntimeException("Rețeta cu denumirea '" + retetaNoua.getDenumire() + "' nu a fost găsită.");
+            throw new RetetaNotFoundException("Reteta " + retetaNoua.getDenumire()+" nu exista");
         }
 
-        // Actualizăm lista de alimente (sau orice alt câmp dorești)
+
         retetaExistenta.setReteta(retetaNoua.getReteta());
 
         return repoRetete.save(retetaExistenta);
@@ -76,12 +72,25 @@ public class ReteteService {
         return repoRetete.findAll();
     }
 
+    public int adaugaAlimentInRetete(String denumire,AlimentDTO alimentDTO) {
+        Reteta retetaExistenta = getReteteByDenumire(denumire);
+        if (retetaExistenta == null) {
+            return 0;
+
+        }
+        List<AlimentDTO> alimente=retetaExistenta.getReteta();
+        alimente.add(alimentDTO);
+        retetaExistenta.setReteta(alimente);
+       repoRetete.save(retetaExistenta);
+       return 1;
+    }
+
 
 
     public List<Reteta> sugestiiReteta(){
         List<Reteta>  retete = repoRetete.findAll();
         TreeMap<Integer,List<Reteta>> sugestii = new TreeMap<>();
-        List<AlimentDTO> alimenteDisponibile = listaService.findAll();
+        List<AlimentDTO> alimenteDisponibile = serviceAlimente.findAll();
         for (Reteta r: retete) {
             int scor=0;
             for (AlimentDTO al: r.getReteta()) {
@@ -107,7 +116,7 @@ public class ReteteService {
 
 
 
-        //return sugestii;
+
         List<List<Reteta>> liste=sugestii.entrySet().stream().filter(entry->entry.getKey()>=2).map(Map.Entry::getValue)
                 .collect(Collectors.toList());
 

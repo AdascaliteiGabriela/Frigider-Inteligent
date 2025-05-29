@@ -1,4 +1,4 @@
-package com.example.blue_app.Repositories;
+package com.example.blue_app.Services;
 
 import com.example.blue_app.Classes.Reteta;
 import org.springframework.data.jpa.repository.JpaRepository;

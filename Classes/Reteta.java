@@ -42,6 +42,8 @@ public class Reteta {
     }
 
 
+
+
     public String getDenumire() {
         return denumire;
     }
