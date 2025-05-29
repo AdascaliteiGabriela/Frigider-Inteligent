@@ -7,7 +7,8 @@ import FridgePage from "./FridgePage";
 import ShoppingListPage from "./ShoppingListPage";
 import SubscriptionPage from "./SubscriptionPage"; // Componenta nouă
 import PremiumFeaturesPage from "./PremiumFeaturesPage"; // Componenta nouă
-
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 function App() {
     const [user, setUser] = useState(null);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -32,7 +33,19 @@ function App() {
         }));
         setShowSubscriptionModal(false);
     };
-
+    const theme = createTheme({
+        palette: {
+            primary: {
+                main: '#4caf50', // verde fresh, poți schimba după branding
+            },
+            secondary: {
+                main: '#ff9800', // portocaliu accent
+            },
+        },
+        typography: {
+            fontFamily: 'Roboto, Arial, sans-serif',
+        },
+    });
     return (
         <Router>
             <div>
@@ -72,6 +85,12 @@ function App() {
                 )}
             </div>
         </Router>
+    );
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline /> {/* Normalizează stilurile în toate browserele */}
+            <RegisterPage />
+        </ThemeProvider>
     );
 }
 
