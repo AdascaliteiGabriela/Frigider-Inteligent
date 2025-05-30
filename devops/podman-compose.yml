@@ -11,7 +11,7 @@ services:
     
   frontend:
     build:
-      context: ../Front-End
+      context: ../food-saver
       dockerfile: Dockerfile
     container_name: ${CONTAINER_FRONTEND}
     ports:
