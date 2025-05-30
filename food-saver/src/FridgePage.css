@@ -1,0 +1,181 @@
+.fridge-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.item-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.5rem;
+    grid-column: span 3;
+}
+
+.filter-sort-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.fridge-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.fridge-table th, .fridge-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.fridge-table th {
+    background-color: #f5f5f5;
+}
+
+.edit-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 0.5rem;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.recipe-suggestions {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+.upgrade-notice {
+    background-color: #fff8e1;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.inline-upgrade-btn {
+    background: none;
+    border: none;
+    color: #4CAF50;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+}
+
+.premium-banner {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 8px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.fridge-table th:last-child,
+.fridge-table td:last-child {
+    text-align: center;
+}.auth-container {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     min-height: 100vh;
+     background-color: #f5f5f5;
+ }
+
+.auth-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+.auth-form h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.error-message {
+    color: #d32f2f;
+    background-color: #fdecea;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.auth-button:hover {
+    background-color: #3e8e41;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #666;
+}
+
+.auth-footer a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
