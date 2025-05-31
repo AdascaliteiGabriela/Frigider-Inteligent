@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './AuthPages.css';
+import { useNavigate } from 'react-router-dom';
+import { TextField, Button, Typography, Box, Alert } from '@mui/material';
 
 function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -9,16 +9,13 @@ function RegisterPage() {
         email: '',
         telefon: '',
         parola: '',
-        confirmareParola: ''
+        confirmareParola: '',
     });
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({...formData, [e.target.name]: e.target.value});
     };
 
     const handleSubmit = (e) => {
@@ -38,101 +35,98 @@ function RegisterPage() {
             return;
         }
 
-        const newUser = {
-            id: Date.now(),
-            ...formData
-        };
-
+        const newUser = { id: Date.now(), ...formData };
         localStorage.setItem('users', JSON.stringify([...users, newUser]));
         localStorage.setItem('currentUser', JSON.stringify(newUser));
         navigate('/');
     };
 
     return (
-        <div className="register-container">
-            <div className="register-form-wrapper">
-                <h2 className="register-title">Înregistrează-te</h2>
-                {error && <div className="register-error">{error}</div>}
+        <Box sx={{ maxWidth: 400, mx: 'auto', mt: 5, p: 3, boxShadow: 3, borderRadius: 2 }}>
+            <Typography variant="h4" component="h1" gutterBottom>
+                Înregistrează-te
+            </Typography>
 
-                <form onSubmit={handleSubmit} className="register-form">
-                    <div className="input-group">
-                        <label>Nume</label>
-                        <input
-                            type="text"
-                            name="nume"
-                            value={formData.nume}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                    <div className="input-group">
-                        <label>Prenume</label>
-                        <input
-                            type="text"
-                            name="prenume"
-                            value={formData.prenume}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+            <form onSubmit={handleSubmit}>
+                <TextField
+                    fullWidth
+                    label="Nume"
+                    name="nume"
+                    value={formData.nume}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                />
 
-                    <div className="input-group">
-                        <label>Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                <TextField
+                    fullWidth
+                    label="Prenume"
+                    name="prenume"
+                    value={formData.prenume}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                />
 
-                    <div className="input-group">
-                        <label>Telefon</label>
-                        <input
-                            type="tel"
-                            name="telefon"
-                            value={formData.telefon}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                <TextField
+                    fullWidth
+                    type="email"
+                    label="Email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                />
 
-                    <div className="input-group">
-                        <label>Parolă</label>
-                        <input
-                            type="password"
-                            name="parola"
-                            value={formData.parola}
-                            onChange={handleChange}
-                            required
-                            minLength="6"
-                        />
-                    </div>
+                <TextField
+                    fullWidth
+                    type="tel"
+                    label="Telefon"
+                    name="telefon"
+                    value={formData.telefon}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                />
 
-                    <div className="input-group">
-                        <label>Confirmă parola</label>
-                        <input
-                            type="password"
-                            name="confirmareParola"
-                            value={formData.confirmareParola}
-                            onChange={handleChange}
-                            required
-                            minLength="6"
-                        />
-                    </div>
+                <TextField
+                    fullWidth
+                    type="password"
+                    label="Parolă"
+                    name="parola"
+                    value={formData.parola}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                    inputProps={{ minLength: 6 }}
+                />
 
-                    <button type="submit" className="register-button">
-                        Înregistrează-te
-                    </button>
-                </form>
+                <TextField
+                    fullWidth
+                    type="password"
+                    label="Confirmă parola"
+                    name="confirmareParola"
+                    value={formData.confirmareParola}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                    inputProps={{ minLength: 6 }}
+                />
 
-                <div className="login-redirect">
-                    Ai deja cont? <Link to="/login">Autentifică-te aici</Link>
-                </div>
-            </div>
-        </div>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    fullWidth
+                    sx={{ mt: 3 }}
+                >
+                    Înregistrează-te
+                </Button>
+            </form>
+        </Box>
     );
 }
 
