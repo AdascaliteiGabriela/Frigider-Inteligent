@@ -1,0 +1,14 @@
+#pentru legarea containerelor
+
+services:
+  backend:
+    build: ./Back-End
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+
+  food-saver:
+    build: ./Front-End/food-saver
+    ports:
+      - "3000:80" 
